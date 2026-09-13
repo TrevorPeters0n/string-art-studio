@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Scratch / working files
+_*.py
+_*.png
+*.log
+
+# Generated output people might leave in the folder
+string-art-*.png
+string-art-*.svg
+string-art-sequence-*.txt
+string-art-sequence-*.csv
+string-art-*.json
+nail-template-*.svg
+
+# OS / editor cruft
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/

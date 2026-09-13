@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String Art Studio</title>
+<!-- The app window's taskbar/title icon comes from the favicon, not from the
+     shortcut, so this must be declared or Edge shows its default globe. -->
+<link rel="icon" href="icon.ico" sizes="any">
+<link rel="icon" type="image/png" href="icon-256.png" sizes="256x256">
+<link rel="icon" type="image/png" href="icon-64.png" sizes="64x64">
+<link rel="apple-touch-icon" href="icon-256.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#12120f">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" class="logo" aria-hidden="true"><circle cx="16" cy="16" r="13.2" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".9"/><g stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity=".95"><line x1="16.0" y1="2.8" x2="22.6" y2="27.43"/><line x1="22.6" y1="4.57" x2="16.0" y2="29.2"/><line x1="27.43" y1="9.4" x2="9.4" y2="27.43"/><line x1="29.2" y1="16.0" x2="4.57" y2="22.6"/></g></svg>
+    <div>
+      <h1>String Art Studio</h1>
+      <p class="tag">photo &rarr; nail-by-nail thread path</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button id="btnGenerate" class="btn btn-primary" disabled>Generate</button>
+    <button id="btnPause" class="btn" disabled>Pause</button>
+    <button id="btnStop" class="btn" disabled>Stop</button>
+    <button id="btnGuide" class="btn" disabled>Build&nbsp;Guide</button>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <section class="panel">
+      <h2 class="panel-h">1 &middot; Source image</h2>
+      <div class="panel-b">
+        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Choose an image">
+          <svg viewBox="0 0 24 24" class="dz-icon"><path d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <strong>Drop an image</strong>
+          <span>or click to browse &middot; or paste with Ctrl+V</span>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+        <input type="file" id="projectInput" accept="application/json,.json" hidden>
+        <button class="btn btn-sm" id="btnOpenProject">Open saved project (.json)&hellip;</button>
+        <div class="samples">
+          <span class="samples-label">No image handy?</span>
+          <button class="chip" data-sample="portrait">Portrait</button>
+          <button class="chip" data-sample="sphere">Sphere</button>
+          <button class="chip" data-sample="target">Test&nbsp;chart</button>
+        </div>
+
+        <div id="cropWrap" class="crop-wrap hidden">
+          <canvas id="cropCanvas" width="300" height="300"></canvas>
+          <p class="hint">Drag to reposition &middot; scroll to zoom</p>
+          <div class="ctrl">
+            <label for="cropZoom">Zoom <output id="cropZoomOut">1.00&times;</output></label>
+            <input type="range" id="cropZoom" min="0.4" max="4" step="0.01" value="1">
+          </div>
+          <div class="ctrl">
+            <label for="cropRot">Rotate <output id="cropRotOut">0&deg;</output></label>
+            <input type="range" id="cropRot" min="-180" max="180" step="1" value="0">
+          </div>
+          <div class="row">
+            <button class="btn btn-sm" id="btnCropReset">Reset framing</button>
+            <button class="btn btn-sm" id="btnCropFlip">Mirror</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-h">2 &middot; Image adjustments</h2>
+      <div class="panel-b">
+        <div class="ctrl"><label for="adjBright">Brightness <output id="adjBrightOut">0</output></label>
+          <input type="range" id="adjBright" min="-100" max="100" step="1" value="0"></div>
+        <div class="ctrl"><label for="adjContrast">Contrast <output id="adjContrastOut">0</output></label>
+          <input type="range" id="adjContrast" min="-100" max="100" step="1" value="0"></div>
+        <div class="ctrl"><label for="adjGamma">Gamma <output id="adjGammaOut">1.00</output></label>
+          <input type="range" id="adjGamma" min="0.3" max="3" step="0.01" value="1"></div>
+        <div class="ctrl"><label for="adjSharpen">Detail boost <output id="adjSharpenOut">0.0</output></label>
+          <input type="range" id="adjSharpen" min="0" max="2" step="0.05" value="0"></div>
+        <div class="ctrl"><label for="adjVignette">Edge fade <output id="adjVignetteOut">0.0</output></label>
+          <input type="range" id="adjVignette" min="0" max="1" step="0.02" value="0"></div>
+        <div class="row wrap">
+          <label class="check"><input type="checkbox" id="adjInvert"> Invert</label>
+          <label class="check"><input type="checkbox" id="adjColor"> Keep colour</label>
+          <button class="btn btn-sm" id="btnAuto">Auto&nbsp;levels</button>
+          <button class="btn btn-sm" id="btnAdjReset">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-h">3 &middot; Board &amp; nails</h2>
+      <div class="panel-b">
+        <div class="ctrl"><label for="numNails">Nails <output id="numNailsOut">240</output></label>
+          <input type="range" id="numNails" min="60" max="500" step="1" value="240"></div>
+        <div class="ctrl"><label for="nailOffset">First-nail angle <output id="nailOffsetOut">-90&deg;</output></label>
+          <input type="range" id="nailOffset" min="-180" max="180" step="1" value="-90"></div>
+        <div class="grid2">
+          <div class="ctrl"><label for="boardSize">Board diameter</label>
+            <input type="number" id="boardSize" min="1" step="any" value="60" class="num"></div>
+          <div class="ctrl"><label for="boardUnit">Unit</label>
+            <select id="boardUnit" class="num">
+              <option value="cm" selected>cm</option>
+              <option value="mm">mm</option>
+              <option value="in">in</option>
+            </select></div>
+        </div>
+        <p class="note" id="nailSpacingNote">&nbsp;</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-h">4 &middot; Threads</h2>
+      <div class="panel-b">
+        <div class="ctrl inline">
+          <label for="bgColor">Board colour</label>
+          <input type="color" id="bgColor" value="#ffffff">
+        </div>
+        <div id="threadList" class="thread-list"></div>
+        <button class="btn btn-sm" id="btnAddThread">+ Add thread colour</button>
+        <p class="note">Threads are worked in order, one continuous strand per colour &mdash; the way you would actually build it.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-h">5 &middot; Algorithm</h2>
+      <div class="panel-b">
+        <div class="ctrl"><label for="workRes">Working resolution <output id="workResOut">500 px</output></label>
+          <input type="range" id="workRes" min="240" max="900" step="20" value="500"></div>
+        <div class="ctrl"><label for="minGap">Min. nail gap <output id="minGapOut">8</output></label>
+          <input type="range" id="minGap" min="1" max="60" step="1" value="8"></div>
+        <div class="ctrl"><label for="reusePen">Repeat penalty <output id="reusePenOut">0.30</output></label>
+          <input type="range" id="reusePen" min="0" max="3" step="0.05" value="0.3"></div>
+        <div class="ctrl"><label for="lenBias">Long-line bias <output id="lenBiasOut">0.00</output></label>
+          <input type="range" id="lenBias" min="-0.6" max="0.9" step="0.02" value="0"></div>
+        <div class="ctrl"><label for="startNail">Starting nail <output id="startNailOut">0</output></label>
+          <input type="range" id="startNail" min="0" max="239" step="1" value="0"></div>
+        <label class="check"><input type="checkbox" id="earlyStop" checked> Stop early when no thread improves the image</label>
+        <p class="note" id="memNote">&nbsp;</p>
+        <div class="row"><button class="btn btn-sm is-danger" id="btnResetAll">Reset all settings</button></div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- STAGE -->
+  <div class="stage">
+    <div class="stage-bar">
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" data-view="result" role="tab">Result</button>
+        <button class="tab" data-view="source" role="tab">Source</button>
+        <button class="tab" data-view="split" role="tab">Compare</button>
+      </div>
+      <div class="stage-bar-right">
+        <label class="check"><input type="checkbox" id="showNails"> Show nails</label>
+        <label class="check"><input type="checkbox" id="liveDraw" checked> Live draw</label>
+      </div>
+    </div>
+
+    <div class="canvas-holder" id="canvasHolder">
+      <div class="canvas-stack" id="canvasStack">
+        <canvas id="sourceCanvas" class="stage-canvas"></canvas>
+        <canvas id="resultCanvas" class="stage-canvas"></canvas>
+        <canvas id="overlayCanvas" class="stage-canvas overlay"></canvas>
+        <div class="split-handle hidden" id="splitHandle"><span></span></div>
+      </div>
+      <div class="empty-state" id="emptyState">
+        <p>Load an image to begin.</p>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      <span class="progress-txt" id="progressTxt">Idle</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="stat-k">Lines</span><span class="stat-v" id="statLines">&mdash;</span></div>
+      <div class="stat"><span class="stat-k">Thread length</span><span class="stat-v" id="statLen">&mdash;</span></div>
+      <div class="stat"><span class="stat-k">Match</span><span class="stat-v" id="statErr">&mdash;</span></div>
+      <div class="stat"><span class="stat-k">Est. build time</span><span class="stat-v" id="statTime">&mdash;</span></div>
+      <div class="stat"><span class="stat-k">Compute</span><span class="stat-v" id="statCompute">&mdash;</span></div>
+    </div>
+
+    <div class="exports">
+      <span class="exports-label">Export</span>
+      <button class="btn btn-sm" data-export="png" disabled>PNG</button>
+      <button class="btn btn-sm" data-export="svg" disabled>SVG</button>
+      <button class="btn btn-sm" data-export="txt" disabled>Sequence .txt</button>
+      <button class="btn btn-sm" data-export="csv" disabled>.csv</button>
+      <button class="btn btn-sm" data-export="json" disabled>.json</button>
+      <button class="btn btn-sm" data-export="template" disabled>Nail template</button>
+      <button class="btn btn-sm" data-export="copy" disabled>Copy sequence</button>
+    </div>
+  </div>
+</main>
+
+<!-- BUILD GUIDE -->
+<div class="modal hidden" id="guideModal" role="dialog" aria-modal="true" aria-label="Build guide">
+  <div class="guide">
+    <div class="guide-head">
+      <div>
+        <h2 id="guideTitle">Build guide</h2>
+        <p class="guide-sub" id="guideSub">&nbsp;</p>
+      </div>
+      <button class="btn btn-sm" id="btnGuideClose">Close</button>
+    </div>
+    <div class="guide-body">
+      <div class="guide-map">
+        <canvas id="guideCanvas" width="460" height="460"></canvas>
+      </div>
+      <div class="guide-steps">
+        <div class="guide-now">
+          <span class="guide-lbl">Step <b id="guideIdx">1</b> of <b id="guideTot">1</b></span>
+          <div class="guide-nails">
+            <span class="nail-from" id="guideFrom">0</span>
+            <svg viewBox="0 0 40 24" class="arrow"><path d="M2 12h34m0 0l-7-6m7 6l-7 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="nail-to" id="guideTo">0</span>
+          </div>
+          <p class="guide-hint">Take the thread from one nail, around the next, then continue.</p>
+        </div>
+        <div class="guide-controls">
+          <button class="btn" id="guidePrev">&larr; Prev</button>
+          <button class="btn btn-primary" id="guideNext">Next &rarr;</button>
+        </div>
+        <input type="range" id="guideSlider" min="0" max="0" value="0" class="guide-slider">
+        <div class="row wrap">
+          <label class="check"><input type="checkbox" id="guideAuto"> Auto-advance</label>
+          <label class="check"><input type="checkbox" id="guideTrail" checked> Draw thread so far</label>
+          <button class="btn btn-sm" id="guideJump">Jump to step&hellip;</button>
+        </div>
+        <div class="guide-next-list">
+          <h3>Coming up</h3>
+          <ol id="guideUpcoming"></ol>
+        </div>
+        <p class="note">Your position is saved automatically &mdash; close the tab and pick up where you left off.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

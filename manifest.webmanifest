@@ -1,0 +1,15 @@
+{
+  "name": "String Art Studio",
+  "short_name": "String Art",
+  "description": "Turn a photo into a nail-by-nail string art threading sequence.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#12120f",
+  "theme_color": "#12120f",
+  "icons": [
+    { "src": "icon-64.png",  "sizes": "64x64",   "type": "image/png" },
+    { "src": "icon-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "icon.ico",     "sizes": "16x16 32x32 48x48 256x256", "type": "image/x-icon" }
+  ]
+}
